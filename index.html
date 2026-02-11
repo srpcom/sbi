@@ -22,8 +22,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        /* Pastikan canvas tsparticles berada di posisi yang benar */
+        body { 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            background-color: #f8fafc; /* slate-50 base */
+            
+            /* ISLAMIC GEOMETRIC PATTERN (ARABESQUE) */
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23059669' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3Cpath d='M36 34c0-2.21-1.79-4-4-4s-4 1.79-4 4 1.79 4 4 4 4-1.79 4-4zM6 34c0-2.21-1.79-4-4-4S-2 31.79-2 34s1.79 4 4 4 4-1.79 4-4zM6 4C6 1.79 4.21 0 2 0S-2 1.79-2 4s1.79 4 4 4 4-1.79 4-4zM36 4c0-2.21-1.79-4-4-4s-4 1.79-4 4 1.79 4 4 4 4-1.79 4-4z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            background-attachment: fixed; /* Parallax effect feeling */
+        }
+        
+        /* Particle Canvas */
         #tsparticles canvas {
             position: absolute !important;
             top: 0;
@@ -32,13 +40,36 @@
             height: 100% !important;
             z-index: 0;
         }
+
+        /* Custom Animations for Today's Card */
+        @keyframes ring-pulse {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        @keyframes bounce-slow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .card-today {
+            animation: ring-pulse 2s infinite;
+            border-color: #10b981 !important; /* Emerald 500 */
+            background: linear-gradient(to bottom right, #ffffff, #f0fdf4); /* White to Emerald-50 */
+            z-index: 10;
+        }
+        
+        .badge-today {
+            animation: bounce-slow 2s infinite;
+        }
     </style>
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useRef } = React;
 
         // --- ICONS COMPONENTS ---
         const Icon = ({ children, size = 24, className = "" }) => (
@@ -68,35 +99,39 @@
         const Moon = (props) => (
             <Icon {...props}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></Icon>
         );
+        const ShareIcon = (props) => (
+            <Icon {...props}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></Icon>
+        );
 
         // --- DATA ---
+        // Added 'month' field: 1 for February, 2 for March (matches JS getMonth() index)
         const scheduleData = [
-            { day: 19, date: "Kamis, 19", ramadhan: 1, event: "Awal Ramadhan", loc: "", category: "Lainnya" },
-            { day: 20, date: "Jum'at, 20", ramadhan: 2, event: "", loc: "", category: "Lainnya" },
-            { day: 21, date: "Sabtu, 21", ramadhan: 3, event: "", loc: "", category: "Lainnya" },
-            { day: 22, date: "Minggu, 22", ramadhan: 4, event: "", loc: "", category: "Lainnya" },
-            { day: 23, date: "Senin, 23", ramadhan: 5, event: "Kampung Bazar Ramadhan", loc: "Desa Merkawang", category: "Bazar" },
-            { day: 24, date: "Selasa, 24", ramadhan: 6, event: "Bukber dengan PKM, Kop PKM dan Tim 6", loc: "Langgeng Resto", category: "Bukber" },
-            { day: 25, date: "Rabu, 25", ramadhan: 7, event: "Kampung Bazar Ramadhan", loc: "Desa Karangasem", category: "Bazar" },
-            { day: 26, date: "Kamis, 26", ramadhan: 8, event: "Bukber dgn OPD dan Stakeholder", loc: "Lynn Hotel", category: "Bukber" },
-            { day: 27, date: "Jum'at, 27", ramadhan: 9, event: "Kampung Bazar Ramadhan", loc: "Desa Glondonggede", category: "Bazar" },
-            { day: 28, date: "Sabtu, 28", ramadhan: 10, event: "", loc: "", category: "Lainnya" },
+            { day: 19, month: 1, date: "Kamis, 19", ramadhan: 1, event: "Awal Ramadhan", loc: "", category: "Lainnya" },
+            { day: 20, month: 1, date: "Jum'at, 20", ramadhan: 2, event: "", loc: "", category: "Lainnya" },
+            { day: 21, month: 1, date: "Sabtu, 21", ramadhan: 3, event: "", loc: "", category: "Lainnya" },
+            { day: 22, month: 1, date: "Minggu, 22", ramadhan: 4, event: "", loc: "", category: "Lainnya" },
+            { day: 23, month: 1, date: "Senin, 23", ramadhan: 5, event: "Kampung Bazar Ramadhan", loc: "Desa Merkawang", category: "Bazar" },
+            { day: 24, month: 1, date: "Selasa, 24", ramadhan: 6, event: "Bukber dengan PKM, Kop PKM dan Tim 6", loc: "Langgeng Resto", category: "Bukber" },
+            { day: 25, month: 1, date: "Rabu, 25", ramadhan: 7, event: "Kampung Bazar Ramadhan", loc: "Desa Karangasem", category: "Bazar" },
+            { day: 26, month: 1, date: "Kamis, 26", ramadhan: 8, event: "Bukber dgn OPD dan Stakeholder", loc: "Lynn Hotel", category: "Bukber" },
+            { day: 27, month: 1, date: "Jum'at, 27", ramadhan: 9, event: "Kampung Bazar Ramadhan", loc: "Desa Glondonggede", category: "Bazar" },
+            { day: 28, month: 1, date: "Sabtu, 28", ramadhan: 10, event: "", loc: "", category: "Lainnya" },
             
-            // Next Month
-            { day: 1, date: "Minggu, 1", ramadhan: 11, event: "", loc: "", category: "Lainnya" },
-            { day: 2, date: "Senin, 2", ramadhan: 12, event: "Lomba Semarak Ramadhan Tahfidz Al-Qur'an (RKTM)", loc: "", category: "Edukasi" },
-            { day: 3, date: "Selasa, 3", ramadhan: 13, event: "Kampung Bazar Ramadhan", loc: "Desa Sawir", category: "Bazar" },
-            { day: 4, date: "Rabu, 4", ramadhan: 14, event: "Kampung Bazar Ramadhan", loc: "Desa Mliwang", category: "Bazar" },
-            { day: 5, date: "Kamis, 5", ramadhan: 15, event: "Pelatihan Manajemen Masjid & Dakwah Digital serta Buka Bersama Ustadz", loc: "Masjid SBI Pabrik Tuban", category: "Edukasi" },
-            { day: 6, date: "Jum'at, 6", ramadhan: 16, event: "900 Paket Sembako di 8 Desa", loc: "Socorejo, Sobontoro, Kenanti, Tambakboyo, Pabeyan, Gadon, Klutuk", category: "Sosial" },
-            { day: 7, date: "Sabtu, 7", ramadhan: 17, event: "Bukber GAC Family", loc: "Surabaya", category: "Bukber" },
-            { day: 8, date: "Minggu, 8", ramadhan: 18, event: "", loc: "", category: "Lainnya" },
-            { day: 9, date: "Senin, 9", ramadhan: 19, event: "1.400 Paket Sembako di 4 Desa & Kampung Bazar", loc: "Sawir, Karangasem, Glondonggede, Merkawang, Kedungrejo", category: "Sosial" },
-            { day: 10, date: "Selasa, 10", ramadhan: 20, event: "1.000 Paket Sembako di 4 Desa", loc: "Mliwang (350), Kedungrejo (350), Gaji (200), Wolutengah (100)", category: "Sosial" },
-            { day: 11, date: "Rabu, 11", ramadhan: 21, event: "Bukber Kepala Desa & Camat Family + Pembagian 350 Paket Karyawan", loc: "Lynn Hotel Resto", category: "Bukber" },
-            { day: 12, date: "Kamis, 12", ramadhan: 22, event: "Bukber GAC dan Driver", loc: "Javanilla Resto", category: "Bukber" },
-            { day: 13, date: "Jum'at, 13", ramadhan: 23, event: "", loc: "", category: "Lainnya" },
-            { day: 14, date: "Sabtu, 14", ramadhan: 24, event: "", loc: "", category: "Lainnya" }
+            // Next Month (Maret)
+            { day: 1, month: 2, date: "Minggu, 1", ramadhan: 11, event: "", loc: "", category: "Lainnya" },
+            { day: 2, month: 2, date: "Senin, 2", ramadhan: 12, event: "Lomba Semarak Ramadhan Tahfidz Al-Qur'an (RKTM)", loc: "", category: "Edukasi" },
+            { day: 3, month: 2, date: "Selasa, 3", ramadhan: 13, event: "Kampung Bazar Ramadhan", loc: "Desa Sawir", category: "Bazar" },
+            { day: 4, month: 2, date: "Rabu, 4", ramadhan: 14, event: "Kampung Bazar Ramadhan", loc: "Desa Mliwang", category: "Bazar" },
+            { day: 5, month: 2, date: "Kamis, 5", ramadhan: 15, event: "Pelatihan Manajemen Masjid & Dakwah Digital serta Buka Bersama Ustadz", loc: "Masjid SBI Pabrik Tuban", category: "Edukasi" },
+            { day: 6, month: 2, date: "Jum'at, 6", ramadhan: 16, event: "900 Paket Sembako di 8 Desa", loc: "Socorejo, Sobontoro, Kenanti, Tambakboyo, Pabeyan, Gadon, Klutuk", category: "Sosial" },
+            { day: 7, month: 2, date: "Sabtu, 7", ramadhan: 17, event: "Bukber GAC Family", loc: "Surabaya", category: "Bukber" },
+            { day: 8, month: 2, date: "Minggu, 8", ramadhan: 18, event: "", loc: "", category: "Lainnya" },
+            { day: 9, month: 2, date: "Senin, 9", ramadhan: 19, event: "1.400 Paket Sembako di 4 Desa & Kampung Bazar", loc: "Sawir, Karangasem, Glondonggede, Merkawang, Kedungrejo", category: "Sosial" },
+            { day: 10, month: 2, date: "Selasa, 10", ramadhan: 20, event: "1.000 Paket Sembako di 4 Desa", loc: "Mliwang (350), Kedungrejo (350), Gaji (200), Wolutengah (100)", category: "Sosial" },
+            { day: 11, month: 2, date: "Rabu, 11", ramadhan: 21, event: "Bukber Kepala Desa & Camat Family + Pembagian 350 Paket Karyawan", loc: "Lynn Hotel Resto", category: "Bukber" },
+            { day: 12, month: 2, date: "Kamis, 12", ramadhan: 22, event: "Bukber GAC dan Driver", loc: "Javanilla Resto", category: "Bukber" },
+            { day: 13, month: 2, date: "Jum'at, 13", ramadhan: 23, event: "", loc: "", category: "Lainnya" },
+            { day: 14, month: 2, date: "Sabtu, 14", ramadhan: 24, event: "", loc: "", category: "Lainnya" }
         ];
 
         const categories = [
@@ -110,83 +145,51 @@
         // --- MAIN APP COMPONENT ---
         function App() {
             const [activeCategory, setActiveCategory] = useState('Semua');
+            const [todayDate, setTodayDate] = useState(null);
+            const [todayMonth, setTodayMonth] = useState(null);
+            
+            const todayRef = useRef(null);
 
-            // Initialize tsParticles
             useEffect(() => {
                 const loadParticles = async () => {
                     await window.tsParticles.load("tsparticles", {
-                        fullScreen: { enable: false }, // Only inside the div
+                        fullScreen: { enable: false },
                         fpsLimit: 60,
                         particles: {
-                            number: {
-                                value: 60,
-                                density: { enable: true, area: 800 }
-                            },
-                            color: {
-                                value: ["#fbbf24", "#ffffff", "#fcd34d"] // Gold, White, Amber
-                            },
-                            shape: {
-                                type: ["circle", "star"], // Stars and dots
-                                options: {
-                                    star: { sides: 5 }
-                                }
-                            },
-                            opacity: {
-                                value: 0.6,
-                                random: true,
-                                anim: {
-                                    enable: true,
-                                    speed: 1,
-                                    opacity_min: 0.1,
-                                    sync: false
-                                }
-                            },
-                            size: {
-                                value: { min: 1, max: 3 },
-                                random: true,
-                                anim: {
-                                    enable: true,
-                                    speed: 2,
-                                    size_min: 0.1,
-                                    sync: false
-                                }
-                            },
-                            move: {
-                                enable: true,
-                                speed: 0.5,
-                                direction: "none",
-                                random: true,
-                                straight: false,
-                                outModes: { default: "out" },
-                                attract: { enable: false, rotateX: 600, rotateY: 1200 }
-                            }
+                            number: { value: 60, density: { enable: true, area: 800 } },
+                            color: { value: ["#fbbf24", "#ffffff", "#fcd34d"] },
+                            shape: { type: ["circle", "star"], options: { star: { sides: 5 } } },
+                            opacity: { value: 0.6, random: true, anim: { enable: true, speed: 1, opacity_min: 0.1 } },
+                            size: { value: { min: 1, max: 3 }, random: true, anim: { enable: true, speed: 2, size_min: 0.1 } },
+                            move: { enable: true, speed: 0.5, direction: "none", random: true, outModes: { default: "out" } }
                         },
                         interactivity: {
-                            events: {
-                                onHover: { enable: true, mode: "bubble" },
-                                onClick: { enable: true, mode: "push" },
-                                resize: true
-                            },
-                            modes: {
-                                bubble: {
-                                    distance: 100,
-                                    size: 5,
-                                    duration: 2,
-                                    opacity: 0.8,
-                                    speed: 3
-                                },
-                                push: { quantity: 4 }
-                            }
+                            events: { onHover: { enable: true, mode: "bubble" }, onClick: { enable: true, mode: "push" }, resize: true },
+                            modes: { bubble: { distance: 100, size: 5, duration: 2, opacity: 0.8 }, push: { quantity: 4 } }
                         },
                         detectRetina: true,
-                        background: {
-                            color: "transparent"
-                        }
+                        background: { color: "transparent" }
                     });
                 };
-
                 loadParticles();
+
+                const date = new Date();
+                setTodayDate(date.getDate()); 
+                setTodayMonth(date.getMonth()); 
             }, []);
+
+            useEffect(() => {
+                if (todayRef.current && activeCategory === 'Semua') {
+                    const timer = setTimeout(() => {
+                        todayRef.current.scrollIntoView({ 
+                            behavior: 'smooth', 
+                            block: 'center',
+                            inline: 'center'
+                        });
+                    }, 1000); 
+                    return () => clearTimeout(timer);
+                }
+            }, [activeCategory, todayDate, todayMonth]);
 
             const filteredData = activeCategory === 'Semua' 
                 ? scheduleData 
@@ -249,15 +252,10 @@
 
             return (
                 <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12">
-                    {/* Header with tsParticles */}
+                    {/* Header */}
                     <div className="bg-emerald-900 h-64 md:h-56 relative overflow-hidden">
-                        {/* Container for Particles */}
                         <div id="tsparticles" className="absolute top-0 left-0 w-full h-full z-0"></div>
-                        
-                        {/* Decorative Gradient Overlay (optional, for depth) */}
                         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-transparent to-emerald-900/50 z-0 pointer-events-none"></div>
-
-                        {/* Text Content - Higher Z-Index */}
                         <div className="container mx-auto px-4 h-full flex flex-col justify-center items-center relative z-10 text-center">
                             <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 tracking-wide font-serif drop-shadow-md">
                                 Jadwal Ramadhan 1447 H
@@ -292,13 +290,25 @@
                                 if (activeCategory !== 'Semua' && !item.event) return null;
                                 
                                 const theme = getCategoryTheme(item.category);
+                                const isToday = item.day === todayDate && item.month === todayMonth;
 
                                 return (
                                     <div 
                                         key={index}
-                                        className={`group relative bg-white rounded-2xl p-6 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1
-                                            ${item.event ? `${theme.border} ${theme.shadow}` : 'border-gray-100 opacity-60 hover:opacity-100'}`}
+                                        ref={isToday ? todayRef : null}
+                                        className={`group relative rounded-2xl p-6 pb-12 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1
+                                            ${item.event ? `${theme.border} ${theme.shadow}` : 'bg-white border-gray-100 opacity-60 hover:opacity-100'}
+                                            ${isToday ? 'card-today ring-4 ring-emerald-100' : 'bg-white'}
+                                        `}
                                     >
+                                        {isToday && (
+                                            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-20 badge-today">
+                                                <div className="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white flex items-center gap-1">
+                                                    <span>📍</span> HARI INI
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <div className="absolute -top-3 -right-3">
                                             <div className={`
                                                 w-12 h-12 rounded-full flex flex-col items-center justify-center text-xs font-bold text-white shadow-md
@@ -317,7 +327,9 @@
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Tanggal</span>
-                                                <span className="text-slate-700 font-medium">{item.date.split(',')[0]}</span>
+                                                <span className={`font-medium ${isToday ? 'text-emerald-700 font-bold' : 'text-slate-700'}`}>
+                                                    {item.date.split(',')[0]}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -338,6 +350,21 @@
                                                         <span>{item.loc}</span>
                                                     </div>
                                                 )}
+
+                                                {/* Share Button Floating Bottom Right */}
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const text = `✨ *Jadwal CSR Ramadhan 1447 H* ✨\n\n🗓️ ${item.date} (Ramadhan ke-${item.ramadhan})\n🎉 *${item.event}*\n📍 Lokasi: ${item.loc || 'Di Tempat'}\n\nSumber: Program CSR & Kegiatan Sosial PT SBI`;
+                                                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                                    }}
+                                                    className={`absolute bottom-4 right-4 p-2.5 rounded-full shadow-md transition-all duration-300 z-10 flex items-center justify-center
+                                                        bg-slate-50 hover:bg-[#25D366] text-slate-400 hover:text-white border border-slate-200 hover:border-[#25D366]
+                                                        hover:scale-110`}
+                                                    title="Bagikan ke WhatsApp"
+                                                >
+                                                    <ShareIcon size={18} />
+                                                </button>
                                             </div>
                                         ) : (
                                             <div className="h-20 flex items-center justify-center text-slate-400 italic text-sm border-2 border-dashed border-slate-100 rounded-lg">
