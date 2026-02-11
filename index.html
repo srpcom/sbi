@@ -53,6 +53,11 @@
             50% { transform: translateY(-5px); }
         }
 
+        @keyframes slide-up {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         .card-today {
             animation: ring-pulse 2s infinite;
             border-color: #10b981 !important; /* Emerald 500 */
@@ -62,6 +67,10 @@
         
         .badge-today {
             animation: bounce-slow 2s infinite;
+        }
+
+        .fab-slide-up {
+            animation: slide-up 0.3s ease-out forwards;
         }
     </style>
 </head>
@@ -102,36 +111,41 @@
         const ShareIcon = (props) => (
             <Icon {...props}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></Icon>
         );
+        const CheckSquare = (props) => (
+            <Icon {...props}><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></Icon>
+        );
+        const Square = (props) => (
+            <Icon {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></Icon>
+        );
 
         // --- DATA ---
-        // Added 'month' field: 1 for February, 2 for March (matches JS getMonth() index)
         const scheduleData = [
-            { day: 19, month: 1, date: "Kamis, 19", ramadhan: 1, event: "Awal Ramadhan", loc: "", category: "Lainnya" },
-            { day: 20, month: 1, date: "Jum'at, 20", ramadhan: 2, event: "", loc: "", category: "Lainnya" },
-            { day: 21, month: 1, date: "Sabtu, 21", ramadhan: 3, event: "", loc: "", category: "Lainnya" },
-            { day: 22, month: 1, date: "Minggu, 22", ramadhan: 4, event: "", loc: "", category: "Lainnya" },
-            { day: 23, month: 1, date: "Senin, 23", ramadhan: 5, event: "Kampung Bazar Ramadhan", loc: "Desa Merkawang", category: "Bazar" },
-            { day: 24, month: 1, date: "Selasa, 24", ramadhan: 6, event: "Bukber dengan PKM, Kop PKM dan Tim 6", loc: "Langgeng Resto", category: "Bukber" },
-            { day: 25, month: 1, date: "Rabu, 25", ramadhan: 7, event: "Kampung Bazar Ramadhan", loc: "Desa Karangasem", category: "Bazar" },
-            { day: 26, month: 1, date: "Kamis, 26", ramadhan: 8, event: "Bukber dgn OPD dan Stakeholder", loc: "Lynn Hotel", category: "Bukber" },
-            { day: 27, month: 1, date: "Jum'at, 27", ramadhan: 9, event: "Kampung Bazar Ramadhan", loc: "Desa Glondonggede", category: "Bazar" },
-            { day: 28, month: 1, date: "Sabtu, 28", ramadhan: 10, event: "", loc: "", category: "Lainnya" },
+            { id: 1, day: 19, month: 1, date: "Kamis, 19", ramadhan: 1, event: "Awal Ramadhan", loc: "", category: "Lainnya" },
+            { id: 2, day: 20, month: 1, date: "Jum'at, 20", ramadhan: 2, event: "", loc: "", category: "Lainnya" },
+            { id: 3, day: 21, month: 1, date: "Sabtu, 21", ramadhan: 3, event: "", loc: "", category: "Lainnya" },
+            { id: 4, day: 22, month: 1, date: "Minggu, 22", ramadhan: 4, event: "", loc: "", category: "Lainnya" },
+            { id: 5, day: 23, month: 1, date: "Senin, 23", ramadhan: 5, event: "Kampung Bazar Ramadhan", loc: "Desa Merkawang", category: "Bazar" },
+            { id: 6, day: 24, month: 1, date: "Selasa, 24", ramadhan: 6, event: "Bukber dengan PKM, Kop PKM dan Tim 6", loc: "Langgeng Resto", category: "Bukber" },
+            { id: 7, day: 25, month: 1, date: "Rabu, 25", ramadhan: 7, event: "Kampung Bazar Ramadhan", loc: "Desa Karangasem", category: "Bazar" },
+            { id: 8, day: 26, month: 1, date: "Kamis, 26", ramadhan: 8, event: "Bukber dgn OPD dan Stakeholder", loc: "Lynn Hotel", category: "Bukber" },
+            { id: 9, day: 27, month: 1, date: "Jum'at, 27", ramadhan: 9, event: "Kampung Bazar Ramadhan", loc: "Desa Glondonggede", category: "Bazar" },
+            { id: 10, day: 28, month: 1, date: "Sabtu, 28", ramadhan: 10, event: "", loc: "", category: "Lainnya" },
             
             // Next Month (Maret)
-            { day: 1, month: 2, date: "Minggu, 1", ramadhan: 11, event: "", loc: "", category: "Lainnya" },
-            { day: 2, month: 2, date: "Senin, 2", ramadhan: 12, event: "Lomba Semarak Ramadhan Tahfidz Al-Qur'an (RKTM)", loc: "", category: "Edukasi" },
-            { day: 3, month: 2, date: "Selasa, 3", ramadhan: 13, event: "Kampung Bazar Ramadhan", loc: "Desa Sawir", category: "Bazar" },
-            { day: 4, month: 2, date: "Rabu, 4", ramadhan: 14, event: "Kampung Bazar Ramadhan", loc: "Desa Mliwang", category: "Bazar" },
-            { day: 5, month: 2, date: "Kamis, 5", ramadhan: 15, event: "Pelatihan Manajemen Masjid & Dakwah Digital serta Buka Bersama Ustadz", loc: "Masjid SBI Pabrik Tuban", category: "Edukasi" },
-            { day: 6, month: 2, date: "Jum'at, 6", ramadhan: 16, event: "900 Paket Sembako di 8 Desa", loc: "Socorejo, Sobontoro, Kenanti, Tambakboyo, Pabeyan, Gadon, Klutuk", category: "Sosial" },
-            { day: 7, month: 2, date: "Sabtu, 7", ramadhan: 17, event: "Bukber GAC Family", loc: "Surabaya", category: "Bukber" },
-            { day: 8, month: 2, date: "Minggu, 8", ramadhan: 18, event: "", loc: "", category: "Lainnya" },
-            { day: 9, month: 2, date: "Senin, 9", ramadhan: 19, event: "1.400 Paket Sembako di 4 Desa & Kampung Bazar", loc: "Sawir, Karangasem, Glondonggede, Merkawang, Kedungrejo", category: "Sosial" },
-            { day: 10, month: 2, date: "Selasa, 10", ramadhan: 20, event: "1.000 Paket Sembako di 4 Desa", loc: "Mliwang (350), Kedungrejo (350), Gaji (200), Wolutengah (100)", category: "Sosial" },
-            { day: 11, month: 2, date: "Rabu, 11", ramadhan: 21, event: "Bukber Kepala Desa & Camat Family + Pembagian 350 Paket Karyawan", loc: "Lynn Hotel Resto", category: "Bukber" },
-            { day: 12, month: 2, date: "Kamis, 12", ramadhan: 22, event: "Bukber GAC dan Driver", loc: "Javanilla Resto", category: "Bukber" },
-            { day: 13, month: 2, date: "Jum'at, 13", ramadhan: 23, event: "", loc: "", category: "Lainnya" },
-            { day: 14, month: 2, date: "Sabtu, 14", ramadhan: 24, event: "", loc: "", category: "Lainnya" }
+            { id: 11, day: 1, month: 2, date: "Minggu, 1", ramadhan: 11, event: "", loc: "", category: "Lainnya" },
+            { id: 12, day: 2, month: 2, date: "Senin, 2", ramadhan: 12, event: "Lomba Semarak Ramadhan Tahfidz Al-Qur'an (RKTM)", loc: "", category: "Edukasi" },
+            { id: 13, day: 3, month: 2, date: "Selasa, 3", ramadhan: 13, event: "Kampung Bazar Ramadhan", loc: "Desa Sawir", category: "Bazar" },
+            { id: 14, day: 4, month: 2, date: "Rabu, 4", ramadhan: 14, event: "Kampung Bazar Ramadhan", loc: "Desa Mliwang", category: "Bazar" },
+            { id: 15, day: 5, month: 2, date: "Kamis, 5", ramadhan: 15, event: "Pelatihan Manajemen Masjid & Dakwah Digital serta Buka Bersama Ustadz", loc: "Masjid SBI Pabrik Tuban", category: "Edukasi" },
+            { id: 16, day: 6, month: 2, date: "Jum'at, 6", ramadhan: 16, event: "900 Paket Sembako di 8 Desa", loc: "Socorejo, Sobontoro, Kenanti, Tambakboyo, Pabeyan, Gadon, Klutuk", category: "Sosial" },
+            { id: 17, day: 7, month: 2, date: "Sabtu, 7", ramadhan: 17, event: "Bukber GAC Family", loc: "Surabaya", category: "Bukber" },
+            { id: 18, day: 8, month: 2, date: "Minggu, 8", ramadhan: 18, event: "", loc: "", category: "Lainnya" },
+            { id: 19, day: 9, month: 2, date: "Senin, 9", ramadhan: 19, event: "1.400 Paket Sembako di 4 Desa & Kampung Bazar", loc: "Sawir, Karangasem, Glondonggede, Merkawang, Kedungrejo", category: "Sosial" },
+            { id: 20, day: 10, month: 2, date: "Selasa, 10", ramadhan: 20, event: "1.000 Paket Sembako di 4 Desa", loc: "Mliwang (350), Kedungrejo (350), Gaji (200), Wolutengah (100)", category: "Sosial" },
+            { id: 21, day: 11, month: 2, date: "Rabu, 11", ramadhan: 21, event: "Bukber Kepala Desa & Camat Family + Pembagian 350 Paket Karyawan", loc: "Lynn Hotel Resto", category: "Bukber" },
+            { id: 22, day: 12, month: 2, date: "Kamis, 12", ramadhan: 22, event: "Bukber GAC dan Driver", loc: "Javanilla Resto", category: "Bukber" },
+            { id: 23, day: 13, month: 2, date: "Jum'at, 13", ramadhan: 23, event: "", loc: "", category: "Lainnya" },
+            { id: 24, day: 14, month: 2, date: "Sabtu, 14", ramadhan: 24, event: "", loc: "", category: "Lainnya" }
         ];
 
         const categories = [
@@ -147,6 +161,10 @@
             const [activeCategory, setActiveCategory] = useState('Semua');
             const [todayDate, setTodayDate] = useState(null);
             const [todayMonth, setTodayMonth] = useState(null);
+            
+            // New States for Selection
+            const [selectionMode, setSelectionMode] = useState(false);
+            const [selectedIds, setSelectedIds] = useState(new Set());
             
             const todayRef = useRef(null);
 
@@ -190,6 +208,47 @@
                     return () => clearTimeout(timer);
                 }
             }, [activeCategory, todayDate, todayMonth]);
+
+            // Handle Selection Logic
+            const toggleSelection = (id) => {
+                const newSelection = new Set(selectedIds);
+                if (newSelection.has(id)) {
+                    newSelection.delete(id);
+                } else {
+                    newSelection.add(id);
+                }
+                setSelectedIds(newSelection);
+            };
+
+            const toggleSelectionMode = () => {
+                if (selectionMode) {
+                    // Clear selection when exiting mode
+                    setSelectedIds(new Set());
+                }
+                setSelectionMode(!selectionMode);
+            };
+
+            const handleMultiShare = () => {
+                // Get selected items and sort them by ID (to keep chronological order)
+                const selectedItems = scheduleData
+                    .filter(item => selectedIds.has(item.id))
+                    .sort((a, b) => a.id - b.id);
+
+                if (selectedItems.length === 0) return;
+
+                let message = "✨ *Jadwal Pilihan CSR Ramadhan 1447 H* ✨\n\n";
+
+                selectedItems.forEach((item, index) => {
+                    message += `${index + 1}. *${item.event || 'Agenda Rutin'}*\n`;
+                    message += `   🗓️ ${item.date} (Ramadhan ke-${item.ramadhan})\n`;
+                    if (item.loc) message += `   📍 ${item.loc}\n`;
+                    message += "\n";
+                });
+
+                message += "Sumber: Program CSR & Kegiatan Sosial PT SBI";
+
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+            };
 
             const filteredData = activeCategory === 'Semua' 
                 ? scheduleData 
@@ -251,7 +310,7 @@
             };
 
             return (
-                <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12">
+                <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-24">
                     {/* Header */}
                     <div className="bg-emerald-900 h-64 md:h-56 relative overflow-hidden">
                         <div id="tsparticles" className="absolute top-0 left-0 w-full h-full z-0"></div>
@@ -264,22 +323,39 @@
                         </div>
                     </div>
 
-                    {/* Filter Navigation */}
+                    {/* Filter & Action Bar */}
                     <div className="container mx-auto px-4 -mt-8 relative z-20">
-                        <div className="bg-white rounded-xl shadow-lg p-2 md:p-4 flex flex-wrap justify-center gap-2 overflow-x-auto">
-                            {categories.map((cat) => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setActiveCategory(cat.id)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap
-                                        ${activeCategory === cat.id 
-                                            ? `${cat.color} text-white shadow-md transform scale-105` 
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                >
-                                    {<cat.icon size={16} />}
-                                    {cat.label}
-                                </button>
-                            ))}
+                        <div className="bg-white rounded-xl shadow-lg p-2 md:p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                            
+                            {/* Categories */}
+                            <div className="flex flex-wrap justify-center md:justify-start gap-2 overflow-x-auto w-full md:w-auto">
+                                {categories.map((cat) => (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setActiveCategory(cat.id)}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 whitespace-nowrap
+                                            ${activeCategory === cat.id 
+                                                ? `${cat.color} text-white shadow-md transform scale-105` 
+                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                    >
+                                        {<cat.icon size={16} />}
+                                        {cat.label}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Select Toggle Button */}
+                            <button
+                                onClick={toggleSelectionMode}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold border-2 transition-all duration-300
+                                    ${selectionMode 
+                                        ? 'bg-slate-800 text-white border-slate-800' 
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-slate-400'}`}
+                            >
+                                <CheckSquare size={18} />
+                                {selectionMode ? 'Batal Pilih' : 'Pilih Banyak'}
+                            </button>
+
                         </div>
                     </div>
 
@@ -291,16 +367,31 @@
                                 
                                 const theme = getCategoryTheme(item.category);
                                 const isToday = item.day === todayDate && item.month === todayMonth;
+                                const isSelected = selectedIds.has(item.id);
 
                                 return (
                                     <div 
                                         key={index}
                                         ref={isToday ? todayRef : null}
-                                        className={`group relative rounded-2xl p-6 pb-12 shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1
+                                        onClick={() => selectionMode && item.event && toggleSelection(item.id)}
+                                        className={`group relative rounded-2xl p-6 pb-12 shadow-sm border transition-all duration-300 
+                                            ${selectionMode && item.event ? 'cursor-pointer' : ''}
                                             ${item.event ? `${theme.border} ${theme.shadow}` : 'bg-white border-gray-100 opacity-60 hover:opacity-100'}
                                             ${isToday ? 'card-today ring-4 ring-emerald-100' : 'bg-white'}
+                                            ${isSelected ? 'ring-2 ring-emerald-500 bg-emerald-50' : ''}
                                         `}
                                     >
+                                        {/* Selection Checkbox Overlay */}
+                                        {selectionMode && item.event && (
+                                            <div className="absolute top-4 left-4 z-20">
+                                                <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-colors
+                                                    ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-white border-gray-300 text-transparent'}
+                                                `}>
+                                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {isToday && (
                                             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 z-20 badge-today">
                                                 <div className="bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg border-2 border-white flex items-center gap-1">
@@ -319,7 +410,7 @@
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-3 mb-4">
+                                        <div className="flex items-center gap-3 mb-4 pl-8"> {/* Added padding-left for checkbox space */}
                                             <div className={`p-2 rounded-lg font-bold text-xl min-w-[3.5rem] text-center border
                                                 ${theme.lightBg || 'bg-slate-50'} ${theme.iconColor || 'text-slate-500'} ${theme.border}
                                             `}>
@@ -351,20 +442,22 @@
                                                     </div>
                                                 )}
 
-                                                {/* Share Button Floating Bottom Right */}
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const text = `✨ *Jadwal CSR Ramadhan 1447 H* ✨\n\n🗓️ ${item.date} (Ramadhan ke-${item.ramadhan})\n🎉 *${item.event}*\n📍 Lokasi: ${item.loc || 'Di Tempat'}\n\nSumber: Program CSR & Kegiatan Sosial PT SBI`;
-                                                        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-                                                    }}
-                                                    className={`absolute bottom-4 right-4 p-2.5 rounded-full shadow-md transition-all duration-300 z-10 flex items-center justify-center
-                                                        bg-slate-50 hover:bg-[#25D366] text-slate-400 hover:text-white border border-slate-200 hover:border-[#25D366]
-                                                        hover:scale-110`}
-                                                    title="Bagikan ke WhatsApp"
-                                                >
-                                                    <ShareIcon size={18} />
-                                                </button>
+                                                {/* Single Share Button (Hidden in selection mode) */}
+                                                {!selectionMode && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const text = `✨ *Jadwal CSR Ramadhan 1447 H* ✨\n\n🗓️ ${item.date} (Ramadhan ke-${item.ramadhan})\n🎉 *${item.event}*\n📍 Lokasi: ${item.loc || 'Di Tempat'}\n\nSumber: Program CSR & Kegiatan Sosial PT SBI`;
+                                                            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+                                                        }}
+                                                        className={`absolute bottom-4 right-4 p-2.5 rounded-full shadow-md transition-all duration-300 z-10 flex items-center justify-center
+                                                            bg-slate-50 hover:bg-[#25D366] text-slate-400 hover:text-white border border-slate-200 hover:border-[#25D366]
+                                                            hover:scale-110`}
+                                                        title="Bagikan ke WhatsApp"
+                                                    >
+                                                        <ShareIcon size={18} />
+                                                    </button>
+                                                )}
                                             </div>
                                         ) : (
                                             <div className="h-20 flex items-center justify-center text-slate-400 italic text-sm border-2 border-dashed border-slate-100 rounded-lg">
@@ -387,6 +480,19 @@
                         )}
                     </div>
                     
+                    {/* Floating Multi-Share Button */}
+                    {selectionMode && selectedIds.size > 0 && (
+                        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 fab-slide-up w-full max-w-md px-4">
+                            <button
+                                onClick={handleMultiShare}
+                                className="w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 px-6 rounded-2xl shadow-xl flex items-center justify-center gap-3 transition-transform hover:scale-105 active:scale-95"
+                            >
+                                <ShareIcon size={24} />
+                                <span>Bagikan ({selectedIds.size}) Agenda via WA</span>
+                            </button>
+                        </div>
+                    )}
+                    
                     <footer className="mt-16 text-center text-slate-400 text-sm pb-8">
                         <p>© 1447 H Program CSR Ramadhan</p>
                         <p className="mt-1">Indahnya Berbagi, Eratkan Silaturahmi</p>
@@ -400,4 +506,3 @@
     </script>
 </body>
 </html>
-
